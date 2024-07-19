@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}
+대시보드 및 개요
+{% endblock %}
+
+{% block content %}
+{% from "debuts/_macro.html" import format_count %}
+<div class="container mt-3 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-12">
+      <div class="card-body">
+        <!-- Overview Section -->
+        <div class="card mt-2">
+          <div class="card-body">
+            <p><strong>분석 목적:</strong> 선택하신 장르 및 키워드와 연관된 작품 리스트(이하 그룹이라 명명)를 분석하여, 전체 시장 트렌드 대비 유의미한 성과 달성 여부 및 세부 디렉팅을 제공합니다.</p>
+            <p><strong>분석 내용:</strong> 그룹 데이터 요약, 유저가 선택한 키워드(이하 키워드)의 장르 전체 키워드 데이터 대비 순위 및 비중, 전체 작품 평균 수입 대비 그룹의 평균 수익 및 중앙값 비교, 밀리언셀러 작품 존재 여부 및 세부 분석 제공</p>
+            <p><strong>기대 효과:</strong> 웹소설 시장의 트렌드와 성과를 분석하여 대중의 니즈를 파악하고, 정형화 된 웹소설 IP 소싱을 벗어나 유니크한 방향성을 탐색합니다.</p>
+          </div>
+        </div>
+
+        <div class="row mt-4">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="row no-gutters d-flex align-items-center text-center">
+                <div class="col-lg-3 d-flex align-items-center justify-content-center">
+                  <div class="card-body">
+                    <img src="{{ data.novel.src }}" class="card-img" alt="{{ data.novel.title }}">
+                  </div>
+                </div>
+                <div class="col-lg-9">
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-3">
+                        <div class="card border-white bg-white mb-3">
+                          <div class="card-header border-white bg-white mh-75 text-bottom">조회수</div>
+                          <div class="card-body border-white bg-beige">
+                            <p class="card-text">{{ format_count(data.novel.viewCount) }}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-3">
+                        <div class="card border-white bg-white mb-3">
+                          <div class="card-header border-white bg-white mh-75 text-bottom">리뷰수</div>
+                          <div class="card-body border-white bg-beige">
+                            <p class="card-text">{{ format_count(data.novel.reviewCount) }}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-3">
+                        <div class="card border-white bg-white mb-3">
+                          <div class="card-header border-white bg-white mh-75 text-bottom">평점</div>
+                          <div class="card-body border-white bg-beige">
+                            <p class="card-text">{{ data.novel.score | round(1) }}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-3">
+                        <div class="card border-white bg-white mb-3">
+                          <div class="card-header border-white bg-white mh-75 text-bottom">예상 수익</div>
+                          <div class="card-body border-white bg-beige">
+                            <p class="card-text">{{ format_count(data.novel.revenue) }}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="card border-white bg-white mb-3">
+                          <div class="card-header border-white bg-white mh-75 text-bottom">키워드</div>
+                          <div class="card-body border-white bg-beige">
+                            <p class="card-text">{{ data.novel.keywords }}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer small text-muted text-center">{{ data.novel.title }}</div>
+            </div>
+          </div>
+        </div>
+        
+
+        <div class="card mt-4">
+          <div class="card-body">
+            <table id="datatablesSimple1">
+              <thead>
+                <tr>
+                  <th>키워드</th>
+                  <th>최고 인기 작품</th>
+                  <th>평균 예상 수익</th>
+                  <th>평균 평점</th>
+                  <th>주요 출판사</th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <th>키워드</th>
+                  <th>최고 인기 작품</th>
+                  <th>평균 예상 수익</th>
+                  <th>평균 평점</th>
+                  <th>주요 출판사</th>
+                </tr>
+              </tfoot>
+              <tbody>
+                {% for each_keyword in data.each_keywords %}
+                  <tr>
+                    <td>{{ each_keyword.keyword }}</td>
+                    <td>{{ each_keyword.most_popular_novel.title }}</td>
+                    <td>{{ each_keyword.avg_revenue }}</td>
+                    <td>{{ each_keyword.avg_score | round(1) }}</td>
+                    <td>{{ each_keyword.most_common_publisher }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer small text-muted text-center">키워드별 관련 작품 데이터</div>
+        </div>
+
+        <!-- Traffic Sources Section -->
+        <div class="row mt-4">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <input type="hidden" id="keywords_importance" value='{{ data.keywords_importance | tojson }}'>
+                <div class="card-body"><canvas id="keywordsPieChart" width="120%" height="80%"></canvas></div>
+              </div>
+              <div class="card-footer small text-muted text-center">장르내 {{ data.keywords | join(', ') }} 비중</div>
+            </div>
+          </div>
+          
+          <!-- New Subscribers Section -->
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <canvas id="keywordsRankLineChart" width="120%" height="83%"></canvas>
+                <input type="hidden" id="keywords_rank" value='{{ data.keywords_rank | tojson }}'>
+                <input type="hidden" id="selected_keywords" value='{{ data.keywords | tojson }}'>
+              </div>
+              <div class="card-footer small text-muted text-center">{{ data.genre_name }} 인기 키워드 비교</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Web Traffic Share Trend Section -->
+        <div class="card mt-4">
+          <div class="card-body">
+            <table id="datatablesSimple2">
+              <thead>
+                <tr>
+                  <th>제목</th>
+                  <th>이용가</th>
+                  <th>출판사</th>
+                  <th>작가</th>
+                  <th>완결여부</th>
+                  <th>평점</th>
+                  <th>조회수</th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <th>제목</th>
+                  <th>이용가</th>
+                  <th>출판사</th>
+                  <th>작가</th>
+                  <th>완결여부</th>
+                  <th>평점</th>
+                  <th>조회수</th>
+                </tr>
+              </tfoot>
+              <tbody>
+                {% for novel in data.top_10_novels %}
+                  <tr>
+                    <td>{{ novel.title }}</td>
+                    <td>{{ novel.user.users }}</td>
+                    <td>{{ novel.publisher.publisher }}</td>
+                    <td>{{ novel.author }}</td>
+                    <td>{{ novel.ing }}</td>
+                    <td>{{ novel.score }}</td>
+                    <td>
+                      {{ format_count(novel.viewCount) }}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer small text-muted text-center">{{ data.genre_name }} TOP 10 작품 리스트</div>
+        </div>
+
+        <!-- Traffic Sources Section -->
+        <div class="row mt-4">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <div class="row text-center">
+                  <div class="col-md-6">
+                    <div class="card border-white bg-white mb-3">
+                      <div class="card-header border-white bg-white mh-75 text-bottom">출판사</div>
+                      <div class="card-body border-white bg-beige">
+                        <p class="card-text">{{ data.analysis.most_common_publisher }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card border-white bg-white mb-3">
+                      <div class="card-header border-white bg-white mh-75 text-bottom">평균 평점</div>
+                      <div class="card-body border-white bg-beige">
+                        <p class="card-text">
+                          {{ data.analysis.avg_score | round(1) }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row text-center">
+                  <div class="col-md-6">
+                    <div class="card border-white bg-white mb-3">
+                      <div class="card-header border-white bg-white mh-75 text-bottom">평균 조회수</div>
+                      <div class="card-body border-white bg-beige">
+                        <p class="card-text">
+                          {{ data.analysis.avg_view_count }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card border-white bg-white mb-3">
+                      <div class="card-header border-white bg-white mh-75 text-bottom">평균 리뷰수</div>
+                      <div class="card-body border-white bg-beige">
+                        <p class="card-text">
+                          {{ format_count(data.analysis.avg_review_count) }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer small text-muted text-center">TOP 10 작품 평균 데이터</div>
+            </div>
+          </div>
+          
+          <!-- New Subscribers Section -->
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <input type="hidden" id="top5Keywords" value='{{ data.top_5_keywords | tojson }}'>
+                <canvas id="top5KeywordsChart" width="400" height="200"></canvas>
+              </div>
+              <div class="card-footer small text-muted text-center">상위 10개 소설의 최빈도 5개 키워드</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mt-2">
+          <div class="card-body">
+            <p><strong>선택하신 키워드 관련 작품은 {{ data.novel.title }} 입니다. 해당 작품의 분석 결과를 제공합니다.</strong></p>
+            <br>
+            <br>
+            <p><strong>작품</strong></p>
+            <p><strong>{{ data.novel.title }}</strong>의 조회수는 <strong>{{ format_count(data.novel.viewCount) }}</strong>, 리뷰수는 <strong>{{ format_count(data.novel.reviewCount) }}</strong>개, 평점은 <strong>{{ data.novel.score }}</strong>점, 예상 수익은 <strong>{{ format_count(data.novel.revenue) }}</strong>원 입니다.</p>
+            <p>해당 작품의 조회수와 비슷한 다른 작품들의 평균 리뷰수는 <strong>{{ format_count(avg_data_by_range.avg_review_count) }}</strong>개, 평균 평점은 <strong>{{ avg_data_by_range.avg_score }}</strong>점으로, 리뷰수는 평균 대비 
+              {% if data.novel.reviewCount > avg_data_by_range.avg_review_count %}
+            <strong>{{ format_count(data.novel.reviewCount - avg_data_by_range.avg_review_count) }}</strong>개 더 많고, 
+              {% elif data.novel.reviewCount < avg_data_by_range.avg_review_count %}
+            <strong>{{ format_count(avg_data_by_range.avg_review_count - data.novel.reviewCount) }}</strong>개 더 낮고, 
+              {% else %}
+                동일하고, 
+              {% endif %}
+              평점은 
+              {% if data.novel.score > avg_data_by_range.avg_score %}
+            <strong>{{ (data.novel.score - avg_data_by_range.avg_score)|round(1) }}</strong>점 더 높습니다.
+              {% elif data.novel.score < avg_data_by_range.avg_score %}
+            <strong>{{ (avg_data_by_range.avg_score - data.novel.score)|round(1) }}</strong>점 더 낮습니다.
+              {% else %}
+              동일합니다.
+              {% endif %}
+            </p>
+            <br>
+            <p><strong>키워드</strong> 
+            <p>각 키워드 별 최고 인기 작품은 {% for each_keyword in data.each_keywords %}<strong>{{ each_keyword.most_popular_novel.title }}</strong>{% if not loop.last %}, {% endif %}{% endfor %} 입니다.</p>
+            <p>각 키워드 별 가장 많은 작품을 출판한 출판사는 <strong>{{ data.most_common_publishers | join(', ') }}</strong> 입니다.</p>
+            <p>선택하신 키워드 중 가장 인기가 많은 키워드는 <strong>{{ data.most_common_keyword }}</strong> 입니다.
+              {% if data.most_common_keyword_rank %} 해당 키워드는 {{ data.genre_name }} 장르의 인기 순위 TOP 10 키워드 <strong>{{ data.most_common_keyword_rank }}위</strong>에 랭크되어 있습니다.{% endif %}
+            </p>
+            <br>
+            <p><strong>{{ data.genre_name }} TOP 10 작품</strong></p>
+            <p>가장 인기 있는 작품들의 평균 평점은 <strong>{{ data.analysis.avg_score | round(1) }}</strong>점으로 나타났습니다. 이는 {{ data.genre_name }} 장르의 평균 평점 대비 
+              {% if data.analysis.avg_score > data.avg_data.avg_score %}
+                {{ (data.analysis.avg_score - data.avg_data.avg_score)|round(1) }}점 더 높습니다.
+              {% else %}
+                {{ (data.avg_data.avg_score - data.analysis.avg_score)|round(1) }}점 더 낮습니다.
+              {% endif %}</p>
+            <p>해당 작품들의 평균 조회수는 <strong>{{ data.analysis.avg_view_count }}</strong>, 리뷰수는 <strong>{{ format_count(data.analysis.avg_review_count) }}</strong>으로 나타났습니다.</p>
+            <p>공통되는 키워드로는 {% for keyword, count in data.top_5_keywords %}<strong>{{ keyword }}</strong>{% if not loop.last %}, {% endif %}{% endfor %} 입니다.</p>
+            <p>그 중 가장 많은 빈도로 나타난 키워드는 '<strong>{{ data.top_5_mck }}</strong>' 입니다. {% if data.top_5_mck_rank %} 해당 키워드는 {{ data.genre_name }} 장르의 인기 순위 TOP 10 키워드 <strong>{{ data.top_5_mck_rank }}위</strong>에 랭크되어 있습니다.{% endif %}</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 첫 번째 DataTable 초기화
+    var table1 = new simpleDatatables.DataTable("#datatablesSimple1");
+  
+    // 두 번째 DataTable 초기화
+    var table2 = new simpleDatatables.DataTable("#datatablesSimple2");
+  });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='assets/demo/keywords-important-pie.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/demo/keywords-rank-line-chart.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/demo/keywords-comparison-chart.js') }}"></script>
+{% endblock %}
